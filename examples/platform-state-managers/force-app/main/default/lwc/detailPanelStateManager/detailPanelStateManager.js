@@ -1,45 +1,10 @@
 import { defineState } from '@lwc/state';
 import smRecord from 'lightning/stateManagerRecord';
 import smLayout from 'lightning/stateManagerLayout';
+import { extractFields } from './fieldUtils';
 
-/**
- * Extracts the field values referenced by a layout.
- * 
- * @param {*} layout layout definition
- * @returns fields referenced by the layout, as a string[]
- */
-function extractFields(layout) {
-    if (! layout) {
-        return;
-    }
-
-    const fields = [];
-
-    for (const section of layout.sections) {
-        for (const row of section.layoutRows) {
-            for (const item of row.layoutItems) {
-                for (const component of item.layoutComponents) {
-                    if (component.componentType === 'Field') {
-                        fields.push(`${layout.objectApiName}.${component.apiName}`);
-                    }
-                }
-            }
-        }
-    }
-
-    return fields;
-}
-
-// Define the state manager
 export default defineState(({ atom, computed, setAtom }) => {
-     // A recordId and objectApiName (both strings) can be specified when the state
-     // manager is created. These values can also be set/changed later using the
-     // state manager's setRecordId & setObjectApiName actions.
     return (recordId, objectApiName) => {
-        // This atom caputres the current configuration of the state manager instance.
-        // We wrap it in an atom to make it easier for other data to react to changes
-        // in the config, but it is NOT exposed as one of the properties of this state
-        // manager.
         const config = atom({ recordId, objectApiName });
 
         // actions to set/change the config
