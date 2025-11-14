@@ -1,7 +1,8 @@
 // Now import after mocks are set up
 import detailPanelStateManager from '../detailPanelStateManager';
-import smRecord, { testSM as testSmRecord } from 'lightning/stateManagerRecord';
-import smLayout, { testSM as testSmLayout } from 'lightning/stateManagerLayout';
+import { stateManagerInstanceMock } from 'sm-test-utils';
+import smRecord from 'lightning/stateManagerRecord';
+import smLayout from 'lightning/stateManagerLayout';
 
 describe('detailPanelStateManager', () => {
     let initialRecordCall;
@@ -12,20 +13,17 @@ describe('detailPanelStateManager', () => {
         smRecord.mockClear();
         smLayout.mockClear();
 
-        initialRecordCall = testSmRecord();
-        initialRecordCall.value.updateAtoms({
+        initialRecordCall = stateManagerInstanceMock({
             status: 'unconfigured',
             data: undefined,
             error: undefined,
         });
-        finalRecordCall = testSmRecord();
-        finalRecordCall.value.updateAtoms({
+        finalRecordCall = stateManagerInstanceMock({
             status: 'unconfigured',
             data: undefined,
             error: undefined,
         });
-        layoutCall = testSmLayout();
-        layoutCall.value.updateAtoms({
+        layoutCall = stateManagerInstanceMock({
             status: 'unconfigured',
             data: undefined,
             error: undefined,
@@ -84,7 +82,7 @@ describe('detailPanelStateManager', () => {
 
         it('should expose data computed property', () => {
             const state = detailPanelStateManager('001000000000000AAA', 'Account');
-            finalRecordCall.value.updateAtoms({
+            finalRecordCall.emitValue({
                 data: {
                     fields: {
                         Name: 'Test Account',
@@ -100,7 +98,8 @@ describe('detailPanelStateManager', () => {
         it('should expose error computed property', () => {
             const state = detailPanelStateManager('001000000000000AAA', 'Account');
             const error = new Error('Test error');
-            initialRecordCall.value.updateAtoms({
+            debugger;
+            initialRecordCall.emitValue({
                 error: error,
                 status: 'error'
             });
@@ -179,7 +178,7 @@ describe('detailPanelStateManager', () => {
                 recordTypeId: '012000000000000AAA',
             };
 
-            initialRecordCall.value.updateAtoms({
+            initialRecordCall.emitValue({
                 data: fakeInitialRecordData,
                 error: null,
                 status: 'loaded'
@@ -223,12 +222,12 @@ describe('detailPanelStateManager', () => {
                 recordTypeId: '012000000000000AAA'
             };
             // Update first arg (initialRecord) with data, layout stays undefined
-            initialRecordCall.value.updateAtoms({
+            initialRecordCall.emitValue({
                 data: fakeRecordData,
                 error: null,
                 status: 'loaded'
             });
-            layoutCall.value.updateAtoms({
+            layoutCall.emitValue({
                 data: undefined,
                 error: null,
                 status: 'loading'
@@ -267,13 +266,13 @@ describe('detailPanelStateManager', () => {
             extractFieldsSpy.mockReturnValue(['Account.Name', 'Account.Phone']);
 
             // Set both dependencies data
-            initialRecordCall.value.updateAtoms({
+            initialRecordCall.emitValue({
                 data: fakeRecordData,
                 error: null,
                 status: 'loaded'
             });
             
-            layoutCall.value.updateAtoms({
+            layoutCall.emitValue({
                 data: fakeLayoutData,
                 error: null,
                 status: 'loaded'
@@ -292,7 +291,7 @@ describe('detailPanelStateManager', () => {
     describe('data computed property', () => {
         it('should return undefined if finalRecord data is undefined', () => {
             const state = detailPanelStateManager('001000000000000AAA', 'Account');
-            finalRecordCall.value.updateAtoms({
+            finalRecordCall.emitValue({
                 data: undefined,
                 error: null,
                 status: 'loading'
@@ -306,7 +305,7 @@ describe('detailPanelStateManager', () => {
                 Phone: { value: '555-1234', displayValue: null },
                 Amount: { value: 900, displayValue: 900 }
             };
-            finalRecordCall.value.updateAtoms({
+            finalRecordCall.emitValue({
                 data: { fields: testFields },
                 error: null,
                 status: 'loaded'
@@ -320,7 +319,7 @@ describe('detailPanelStateManager', () => {
         });
 
         it('should return empty object if finalRecord data.fields is empty', () => {
-            finalRecordCall.value.updateAtoms({
+            finalRecordCall.emitValue({
                 data: { fields: {} },
                 error: null,
                 status: 'loaded'
@@ -332,36 +331,36 @@ describe('detailPanelStateManager', () => {
 
     describe('error computed property', () => {
         it('should be undefined if initialRecord, layout, and finalRecord all have no error', () => {
-            initialRecordCall.value.updateAtoms({ error: undefined });
-            layoutCall.value.updateAtoms({ error: undefined });
-            finalRecordCall.value.updateAtoms({ error: undefined });
+            initialRecordCall.emitValue({ error: undefined });
+            layoutCall.emitValue({ error: undefined });
+            finalRecordCall.emitValue({ error: undefined });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.error).toBeUndefined();
         });
 
         it('should return initialRecord error if set', () => {
             const err = new Error('Initial error');
-            initialRecordCall.value.updateAtoms({ error: err });
-            layoutCall.value.updateAtoms({ error: undefined });
-            finalRecordCall.value.updateAtoms({ error: undefined });
+            initialRecordCall.emitValue({ error: err });
+            layoutCall.emitValue({ error: undefined });
+            finalRecordCall.emitValue({ error: undefined });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.error).toBe(err);
         });
 
         it('should return layout error if initialRecord has no error but layout has error', () => {
-            initialRecordCall.value.updateAtoms({ error: undefined });
+            initialRecordCall.emitValue({ error: undefined });
             const err = new Error('Layout error');
-            layoutCall.value.updateAtoms({ error: err });
-            finalRecordCall.value.updateAtoms({ error: undefined });
+            layoutCall.emitValue({ error: err });
+            finalRecordCall.emitValue({ error: undefined });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.error).toBe(err);
         });
 
         it('should return finalRecord error if the others do not', () => {
-            initialRecordCall.value.updateAtoms({ error: undefined });
-            layoutCall.value.updateAtoms({ error: undefined });
+            initialRecordCall.emitValue({ error: undefined });
+            layoutCall.emitValue({ error: undefined });
             const err = new Error('Final error');
-            finalRecordCall.value.updateAtoms({ error: err });
+            finalRecordCall.emitValue({ error: err });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.error).toBe(err);
         });
@@ -369,41 +368,41 @@ describe('detailPanelStateManager', () => {
 
     describe('status computed property', () => {
         it('should be "unconfigured" if initialRecord status is unconfigured', () => {
-            initialRecordCall.value.updateAtoms({ status: 'unconfigured' });
-            layoutCall.value.updateAtoms({ status: 'loading' });
-            finalRecordCall.value.updateAtoms({ status: 'loading' });
+            initialRecordCall.emitValue({ status: 'unconfigured' });
+            layoutCall.emitValue({ status: 'loading' });
+            finalRecordCall.emitValue({ status: 'loading' });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.status).toBe('unconfigured');
         });
 
         it('should be "loading" if any is loading but not unconfigured or error', () => {
-            initialRecordCall.value.updateAtoms({ status: 'loaded' });
-            layoutCall.value.updateAtoms({ status: 'loading' });
-            finalRecordCall.value.updateAtoms({ status: 'loaded' });
+            initialRecordCall.emitValue({ status: 'loaded' });
+            layoutCall.emitValue({ status: 'loading' });
+            finalRecordCall.emitValue({ status: 'loaded' });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.status).toBe('loading');
 
-            layoutCall.value.updateAtoms({ status: 'loaded' });
-            finalRecordCall.value.updateAtoms({ status: 'loading' });
+            layoutCall.emitValue({ status: 'loaded' });
+            finalRecordCall.emitValue({ status: 'loading' });
             expect(state.value.status).toBe('loading');
         });
 
         it('should be "error" if any has error status and initialRecord is not unconfigured', () => {
-            initialRecordCall.value.updateAtoms({ status: 'loaded' });
-            layoutCall.value.updateAtoms({ status: 'error' });
-            finalRecordCall.value.updateAtoms({ status: 'loaded' });
+            initialRecordCall.emitValue({ status: 'loaded' });
+            layoutCall.emitValue({ status: 'error' });
+            finalRecordCall.emitValue({ status: 'loaded' });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.status).toBe('error');
 
-            layoutCall.value.updateAtoms({ status: 'loaded' });
-            finalRecordCall.value.updateAtoms({ status: 'error' });
+            layoutCall.emitValue({ status: 'loaded' });
+            finalRecordCall.emitValue({ status: 'error' });
             expect(state.value.status).toBe('error');
         });
 
         it('should be "loaded" if all are loaded', () => {
-            initialRecordCall.value.updateAtoms({ status: 'loaded' });
-            layoutCall.value.updateAtoms({ status: 'loaded' });
-            finalRecordCall.value.updateAtoms({ status: 'loaded' });
+            initialRecordCall.emitValue({ status: 'loaded' });
+            layoutCall.emitValue({ status: 'loaded' });
+            finalRecordCall.emitValue({ status: 'loaded' });
             const state = detailPanelStateManager('001', 'Account');
             expect(state.value.status).toBe('loaded');
         });
@@ -415,21 +414,6 @@ describe('detailPanelStateManager', () => {
         jest.useFakeTimers('modern'); // use modern fake timers
 
         // 1. Initial state: all state managers are unconfigured
-        initialRecordCall.value.updateAtoms({
-            status: 'unconfigured',
-            data: undefined,
-            error: undefined,
-        });
-        layoutCall.value.updateAtoms({
-            status: 'unconfigured',
-            data: undefined,
-            error: undefined,
-        });
-        finalRecordCall.value.updateAtoms({
-            status: 'unconfigured',
-            data: undefined,
-            error: undefined,
-        });
         const state = detailPanelStateManager('001AAA', 'Account');
 
         // run all ticks to ensure the state manager is updated
@@ -441,7 +425,7 @@ describe('detailPanelStateManager', () => {
         expect(state.value.error).toBeUndefined();
 
         // 2. initialRecord is loading (simulate fetching minimal record)
-        initialRecordCall.value.updateAtoms({
+        initialRecordCall.emitValue({
             status: 'loading',
             data: undefined,
             error: undefined,
@@ -460,12 +444,12 @@ describe('detailPanelStateManager', () => {
             apiName: 'Account',
             recordTypeId: '012BBBB'
         };
-        initialRecordCall.value.updateAtoms({
+        initialRecordCall.emitValue({
             status: 'loaded',
             data: minimalRecord,
             error: undefined,
         });
-        layoutCall.value.updateAtoms({
+        layoutCall.emitValue({
             status: 'loading',
             data: undefined,
             error: undefined,
@@ -491,12 +475,12 @@ describe('detailPanelStateManager', () => {
                 ]}
             ]
         };
-        layoutCall.value.updateAtoms({
+        layoutCall.emitValue({
             status: 'loaded',
             data: layoutData,
             error: undefined,
         });
-        finalRecordCall.value.updateAtoms({
+        finalRecordCall.emitValue({
             status: 'loading',
             data: undefined,
             error: undefined,
@@ -510,16 +494,15 @@ describe('detailPanelStateManager', () => {
         expect(state.value.error).toBeUndefined();
 
         // 5. finalRecord loads (record with layout fields present)
-        const finalRecordData = {
-            id: '001AAA',
-            fields: {
-                Name: { value: 'Acme Corp', displayValue: undefined },
-                Phone: { value: '555-000', displayValue: '(555) 000' }
-            }
-        };
-        finalRecordCall.value.updateAtoms({
+        finalRecordCall.emitValue({
             status: 'loaded',
-            data: finalRecordData,
+            data: {
+                id: '001AAA',
+                fields: {
+                    Name: { value: 'Acme Corp', displayValue: undefined },
+                    Phone: { value: '555-000', displayValue: '(555) 000' }
+                }
+            },
             error: undefined,
         });
 

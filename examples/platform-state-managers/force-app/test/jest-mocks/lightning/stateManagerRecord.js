@@ -2,12 +2,14 @@
  * Manual mock for lightning/stateManagerRecord
  * This mock is available globally for all Jest tests
  */
-import { smStubWith } from 'sm-test-utils';
+import { stateManagerInstanceMock } from 'sm-test-utils';
 
-const testSM = smStubWith(['status', 'data', 'error']);
-
-const mockStateManagerRecord = jest.fn(() => testSM());
+const mockStateManagerRecord = jest.fn(() => stateManagerInstanceMock({
+    status: 'unconfigured',
+    data: undefined,
+    error: undefined,
+    // other actions...
+}));
 
 export default mockStateManagerRecord;
-export { testSM };
 
